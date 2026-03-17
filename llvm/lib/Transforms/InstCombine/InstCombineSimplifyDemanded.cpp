@@ -567,7 +567,7 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
     if ((DemandedMask & 1) == 0) {
       // If we do not need the low bit, try to convert bool math to logic:
       // add iN (zext i1 X), (sext i1 Y) --> sext (~X & Y) to iN
-      
+
       if (match(I, m_c_Add(m_OneUse(m_ZExt(m_Value(X))),
                            m_OneUse(m_SExt(m_Value(Y))))) &&
           X->getType()->isIntOrIntVectorTy(1) && X->getType() == Y->getType()) {
@@ -599,10 +599,11 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
         Value *Or = Builder.CreateOr(X, Y);
         return Builder.CreateSExt(Or, VTy);
       }
-    }
-    else if (DemandedMask == 1 &&
-        match(I->getOperand(0), m_Intrinsic<Intrinsic::ctpop>(m_Value(X))) &&
-        match(I->getOperand(1), m_Intrinsic<Intrinsic::ctpop>(m_Value(Y)))) {
+    } else if (DemandedMask == 1 &&
+               match(I->getOperand(0),
+                     m_Intrinsic<Intrinsic::ctpop>(m_Value(X))) &&
+               match(I->getOperand(1),
+                     m_Intrinsic<Intrinsic::ctpop>(m_Value(Y)))) {
       // (ctpop(X) + ctpop(Y)) & 1 --> ctpop(X^Y) & 1
       IRBuilderBase::InsertPointGuard Guard(Builder);
       Builder.SetInsertPoint(I);
@@ -663,7 +664,7 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
     if (DemandedMask == 1 &&
         match(I->getOperand(0), m_Intrinsic<Intrinsic::ctpop>(m_Value(LHS))) &&
         match(I->getOperand(1), m_Intrinsic<Intrinsic::ctpop>(m_Value(RHS)))) {
-      // (ctpop(X) + ctpop(Y)) & 1 --> ctpop(X^Y) & 1
+      // (ctpop(X) - ctpop(Y)) & 1 --> ctpop(X^Y) & 1
       IRBuilderBase::InsertPointGuard Guard(Builder);
       Builder.SetInsertPoint(I);
       auto *Xor = Builder.CreateXor(LHS, RHS);
